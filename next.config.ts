@@ -2,29 +2,36 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Ensure environment variables are available during build
+  // Environment variables
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
 
-  // Images configuration
+  // Images configuration - using remotePatterns instead of deprecated domains
   images: {
-    domains: ['msntpwnoseenxweiayxr.supabase.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'msntpwnoseenxweiayxr.supabase.co',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 
-  // Enable React strict mode for better development
+  // React strict mode
   reactStrictMode: true,
 
-  // Output configuration
+  // Output standalone for Vercel deployment
   output: 'standalone',
 
-  // ESLint configuration - ignore during build to prevent build failures
+  // Disable ESLint during build - using the new CLI flag approach
   eslint: {
     ignoreDuringBuilds: true,
   },
 
-  // TypeScript configuration - ignore type errors during build
+  // Disable TypeScript type checking during build
   typescript: {
     ignoreBuildErrors: true,
   },
