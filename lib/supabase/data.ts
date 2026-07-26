@@ -1,9 +1,25 @@
 // lib/supabase/data.ts
 import { supabase } from './client';
 
-// ============================================
-// EXPERIENCES
-// ============================================
+// Get all places
+export async function getPlaces() {
+  try {
+    const { data, error } = await supabase
+      .from('places')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching places:', error.message);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Unexpected error fetching places:', error);
+    return [];
+  }
+}
 
 // Get all experiences
 export async function getExperiences() {
@@ -14,7 +30,7 @@ export async function getExperiences() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching experiences:', error);
+      console.error('Error fetching experiences:', error.message);
       return [];
     }
 
@@ -25,23 +41,23 @@ export async function getExperiences() {
   }
 }
 
-// Get experience by ID
-export async function getExperienceById(id: string) {
+// Get place by ID
+export async function getPlaceById(id: string) {
   try {
     const { data, error } = await supabase
-      .from('experiences')
+      .from('places')
       .select('*')
       .eq('id', id)
       .single();
 
     if (error) {
-      console.error('Error fetching experience:', error);
+      console.error('Error fetching place:', error.message);
       return null;
     }
 
     return data || null;
   } catch (error) {
-    console.error('Unexpected error fetching experience:', error);
+    console.error('Unexpected error fetching place:', error);
     return null;
   }
 }
@@ -59,7 +75,7 @@ export async function getUpcomingEvents() {
       .order('date', { ascending: true });
 
     if (error) {
-      console.error('Error fetching upcoming events:', error);
+      console.error('Error fetching upcoming events:', error.message);
       return [];
     }
 
@@ -70,7 +86,7 @@ export async function getUpcomingEvents() {
   }
 }
 
-// Get past events (video memories)
+// Get past events
 export async function getPastEvents() {
   try {
     const today = new Date().toISOString().split('T')[0];
@@ -84,7 +100,7 @@ export async function getPastEvents() {
       .order('date', { ascending: false });
 
     if (error) {
-      console.error('Error fetching past events:', error);
+      console.error('Error fetching past events:', error.message);
       return [];
     }
 
@@ -95,77 +111,7 @@ export async function getPastEvents() {
   }
 }
 
-// ============================================
-// PLACES
-// ============================================
-
-// Get all places
-export async function getPlaces() {
-  try {
-    const { data, error } = await supabase
-      .from('places')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching places:', error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error('Unexpected error fetching places:', error);
-    return [];
-  }
-}
-
-// Get place by ID
-export async function getPlaceById(id: string) {
-  try {
-    const { data, error } = await supabase
-      .from('places')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching place:', error);
-      return null;
-    }
-
-    return data || null;
-  } catch (error) {
-    console.error('Unexpected error fetching place:', error);
-    return null;
-  }
-}
-
-// Get places by organization ID
-export async function getPlacesByOrganization(organizationId: string) {
-  try {
-    const { data, error } = await supabase
-      .from('places')
-      .select('*')
-      .eq('organization_id', organizationId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching places by organization:', error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error('Unexpected error fetching places by organization:', error);
-    return [];
-  }
-}
-
-// ============================================
-// ORGANIZATIONS
-// ============================================
-
-// Get all approved organizations
+// Get organizations
 export async function getOrganizations() {
   try {
     const { data, error } = await supabase
@@ -175,7 +121,7 @@ export async function getOrganizations() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching organizations:', error);
+      console.error('Error fetching organizations:', error.message);
       return [];
     }
 
@@ -186,32 +132,7 @@ export async function getOrganizations() {
   }
 }
 
-// Get organization by ID
-export async function getOrganizationById(id: string) {
-  try {
-    const { data, error } = await supabase
-      .from('organizations')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching organization:', error);
-      return null;
-    }
-
-    return data || null;
-  } catch (error) {
-    console.error('Unexpected error fetching organization:', error);
-    return null;
-  }
-}
-
-// ============================================
-// SEARCH
-// ============================================
-
-// Search across experiences, places, and organizations
+// Search
 export async function search(query: string) {
   try {
     const results = [];
@@ -263,20 +184,13 @@ export async function search(query: string) {
   }
 }
 
-// ============================================
-// NEARBY EXPERIENCES
-// ============================================
-
-// Get nearby experiences based on user location
+// Get nearby experiences
 export async function getNearbyExperiences(
   lat: number, 
   lng: number, 
   radiusKm: number = 10
 ) {
   try {
-    console.log(`Fetching nearby experiences within ${radiusKm}km of (${lat}, ${lng})`);
-    
-    // First get all places with coordinates
     const { data: places, error } = await supabase
       .from('places')
       .select('*, experiences(*)')
@@ -289,11 +203,9 @@ export async function getNearbyExperiences(
     }
 
     if (!places || places.length === 0) {
-      console.log('No places with coordinates found');
       return [];
     }
 
-    // Calculate distance for each place (in km)
     const nearbyPlaces = places
       .map((place: any) => {
         const distance = calculateDistance(lat, lng, place.lat, place.lng);
@@ -302,7 +214,6 @@ export async function getNearbyExperiences(
       .filter((place: any) => place.distance <= radiusKm)
       .sort((a: any, b: any) => a.distance - b.distance);
 
-    // Flatten experiences from nearby places
     const nearbyExperiences = nearbyPlaces.flatMap((place: any) => {
       const experiences = place.experiences || [];
       return experiences.map((exp: any) => ({
@@ -312,7 +223,6 @@ export async function getNearbyExperiences(
       }));
     });
 
-    console.log(`Found ${nearbyExperiences.length} nearby experiences`);
     return nearbyExperiences;
   } catch (error) {
     console.error('Unexpected error fetching nearby experiences:', error);
@@ -320,9 +230,9 @@ export async function getNearbyExperiences(
   }
 }
 
-// Helper: Calculate distance between two coordinates (Haversine formula)
+// Helper: Calculate distance
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371; // Earth's radius in km
+  const R = 6371;
   const dLat = toRad(lat2 - lat1);
   const dLng = toRad(lng2 - lng1);
   const a = 
