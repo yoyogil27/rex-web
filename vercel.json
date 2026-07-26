@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npm run build -- --no-turbo",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "devCommand": "npm run dev",
+  "env": {
+    "NEXT_DISABLE_TURBOPACK": "1"
+  }
+}
